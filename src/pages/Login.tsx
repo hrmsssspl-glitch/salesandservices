@@ -72,9 +72,9 @@ const Login: React.FC = () => {
           <div className="space-y-6">
             <div>
               <h2 className="text-4xl font-bold leading-tight">
-                Streamline Your
+                Srinivasa Sales and Service 
                 <br />
-                HR Operations
+                Private Limited
               </h2>
               <p className="mt-4 text-lg opacity-80 max-w-md">
                 Complete HR management solution for employee data, payroll, attendance, 

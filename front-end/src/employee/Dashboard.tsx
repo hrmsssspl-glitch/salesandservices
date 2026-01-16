@@ -210,7 +210,7 @@ const EmployeeDashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
@@ -222,7 +222,7 @@ const EmployeeDashboard: React.FC = () => {
             </Button>
           ))}
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };

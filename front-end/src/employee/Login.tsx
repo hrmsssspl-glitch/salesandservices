@@ -202,20 +202,33 @@ const Login: React.FC = () => {
                     <Badge variant="secondary" className="text-xs">Dev Mode</Badge>
                   </div>
                   <div className="space-y-2">
-                    {DEMO_CREDENTIALS.map((cred) => (
-                      <button
-                        key={cred.email}
-                        type="button"
-                        onClick={() => handleDemoLogin(cred.email, cred.password)}
-                        className="w-full flex items-center justify-between p-2 text-left text-sm rounded-md hover:bg-background transition-colors border border-transparent hover:border-border"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${cred.color}`} />
-                          <span className="font-medium">{cred.role}</span>
-                        </div>
-                        <span className="text-muted-foreground text-xs">{cred.email}</span>
-                      </button>
-                    ))}
+                    {DEMO_CREDENTIALS.map((cred) => {
+  const isEmployee = cred.role === 'Employee';
+
+  return (
+    <button
+      key={cred.email}
+      type="button"
+      disabled={!isEmployee}
+      onClick={() =>
+        isEmployee && handleDemoLogin(cred.email, cred.password)
+      }
+      className={`w-full flex items-center justify-between p-2 text-left text-sm rounded-md transition-colors border
+        ${
+          isEmployee
+            ? 'hover:bg-background hover:border-border'
+            : 'opacity-50 cursor-not-allowed'
+        }`}
+    >
+      <div className="flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${cred.color}`} />
+        <span className="font-medium">{cred.role}</span>
+      </div>
+      <span className="text-muted-foreground text-xs">{cred.email}</span>
+    </button>
+  );
+})}
+
                   </div>
                   <p className="text-xs text-muted-foreground mt-3">
                     Click any account to auto-fill credentials

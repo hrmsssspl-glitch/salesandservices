@@ -133,7 +133,7 @@ const SuperAdminDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="card-hover opacity-70">
+        <Card className="card-hover">
           <CardContent className="p-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-muted">

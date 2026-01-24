@@ -33,27 +33,47 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
+/* ---------------- TYPES ---------------- */
+
 interface Company {
   id: string;
-  name: string;
-  code: string;
-  gst: string;
-  email: string;
-  phone: string;
+  companyName: string;
+  companyCode: string;
+  cinGst: string;
+  panNumber: string;
+  registeredAddress: string;
+  corporateAddress: string;
+  contactEmail: string;
+  contactPhone: string;
+  establishmentYear: string;
+  industryType: string;
+  website: string;
+  brandName: string;
   status: "Active" | "Inactive";
 }
+
+/* ---------------- MOCK DATA ---------------- */
 
 const initialCompanies: Company[] = [
   {
     id: "1",
-    name: "Srinivasa Sales & Service Pvt Ltd",
-    code: "SSSPL",
-    gst: "36ABCDE1234F1Z5",
-    email: "info@srinivasaservices.com",
-    phone: "+91 9876543210",
+    companyName: "Srinivasa Sales and Service Pvt. Ltd.",
+    companyCode: "SSSPL",
+    cinGst: "36ABCDE1234F1Z5",
+    panNumber: "ABCDE1234F",
+    registeredAddress: "Registered Office, Hyderabad, Telangana",
+    corporateAddress: "Corporate Office, Hyderabad, Telangana",
+    contactEmail: "info@ssspl.com",
+    contactPhone: "+91 9876543210",
+    establishmentYear: "2010",
+    industryType: "Services",
+    website: "https://www.ssspl.com",
+    brandName: "SSSPL",
     status: "Active",
   },
 ];
+
+/* ---------------- COMPONENT ---------------- */
 
 const CompanyMaster = () => {
   const [companies, setCompanies] = useState<Company[]>(initialCompanies);
@@ -70,11 +90,18 @@ const CompanyMaster = () => {
         ...prev,
         {
           id: Date.now().toString(),
-          name: "",
-          code: "",
-          gst: "",
-          email: "",
-          phone: "",
+          companyName: "",
+          companyCode: "",
+          cinGst: "",
+          panNumber: "",
+          registeredAddress: "",
+          corporateAddress: "",
+          contactEmail: "",
+          contactPhone: "",
+          establishmentYear: "",
+          industryType: "",
+          website: "",
+          brandName: "",
           status: "Active",
         },
       ]);
@@ -98,7 +125,9 @@ const CompanyMaster = () => {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Company Master</CardTitle>
-          <CardDescription>Define company details</CardDescription>
+          <CardDescription>
+            Define legal and operational company details
+          </CardDescription>
         </div>
         <Button onClick={() => setOpen(true)} className="bg-accent">
           <Plus className="h-4 w-4 mr-2" />
@@ -111,7 +140,7 @@ const CompanyMaster = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>Name</TableHead>
+                <TableHead>Company Name</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead>GST / CIN</TableHead>
                 <TableHead>Email</TableHead>
@@ -123,11 +152,13 @@ const CompanyMaster = () => {
             <TableBody>
               {companies.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell>{c.code}</TableCell>
-                  <TableCell>{c.gst}</TableCell>
-                  <TableCell>{c.email}</TableCell>
-                  <TableCell>{c.phone}</TableCell>
+                  <TableCell className="font-medium">
+                    {c.companyName}
+                  </TableCell>
+                  <TableCell>{c.companyCode}</TableCell>
+                  <TableCell>{c.cinGst}</TableCell>
+                  <TableCell>{c.contactEmail}</TableCell>
+                  <TableCell>{c.contactPhone}</TableCell>
                   <TableCell>
                     <Badge
                       className={
@@ -165,66 +196,174 @@ const CompanyMaster = () => {
         </div>
       </CardContent>
 
-      {/* Add / Edit Dialog */}
+      {/* ADD / EDIT DIALOG */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
               {editing ? "Edit Company" : "Add Company"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
-              <Label>Company Name</Label>
+              <Label>Company Name *</Label>
               <Input
-                value={editing?.name || ""}
+                value={editing?.companyName || ""}
                 onChange={(e) =>
-                  setEditing((prev) =>
-                    prev ? { ...prev, name: e.target.value } : prev
+                  setEditing((p) =>
+                    p ? { ...p, companyName: e.target.value } : p
                   )
                 }
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Company Code</Label>
-                <Input />
-              </div>
-              <div>
-                <Label>GST / CIN</Label>
-                <Input />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Email</Label>
-                <Input />
-              </div>
-              <div>
-                <Label>Phone</Label>
-                <Input />
-              </div>
+            <div>
+              <Label>Company Code *</Label>
+              <Input
+                value={editing?.companyCode || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, companyCode: e.target.value } : p
+                  )
+                }
+              />
             </div>
 
             <div>
-              <Label>Status</Label>
-              <Select defaultValue="Active">
+              <Label>GST / CIN *</Label>
+              <Input
+                value={editing?.cinGst || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, cinGst: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>PAN Number *</Label>
+              <Input
+                value={editing?.panNumber || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, panNumber: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label>Registered Address *</Label>
+              <Input
+                value={editing?.registeredAddress || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, registeredAddress: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label>Corporate Address *</Label>
+              <Input
+                value={editing?.corporateAddress || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, corporateAddress: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Contact Email *</Label>
+              <Input
+                value={editing?.contactEmail || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, contactEmail: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Contact Phone *</Label>
+              <Input
+                value={editing?.contactPhone || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, contactPhone: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Establishment Year</Label>
+              <Input
+                value={editing?.establishmentYear || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, establishmentYear: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Industry Type</Label>
+              <Select
+                value={editing?.industryType || ""}
+                onValueChange={(v) =>
+                  setEditing((p) => (p ? { ...p, industryType: v } : p))
+                }
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Manufacturing">
+                    Manufacturing
+                  </SelectItem>
+                  <SelectItem value="Services">Services</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label>Website URL</Label>
+              <Input
+                value={editing?.website || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, website: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Brand Name / Logo Text</Label>
+              <Input
+                value={editing?.brandName || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, brandName: e.target.value } : p
+                  )
+                }
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setEditing(null);
+              setOpen(false)
+            }}>
               Cancel
             </Button>
             <Button onClick={handleSave} className="bg-accent">

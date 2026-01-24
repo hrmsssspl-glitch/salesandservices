@@ -33,27 +33,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+/* ---------------- TYPES ---------------- */
+
 interface Branch {
   id: string;
-  name: string;
-  code: string;
-  city: string;
+  branchName: string;
+  branchCode: string;
   state: string;
-  gst: string;
+  city: string;
+  address: string;
+  contactPerson: string;
+  contactNumber: string;
+  email: string;
+  operationalSince: string;
+  branchType: string;
+  capacity: string;
+  gstNumber: string;
   status: "Active" | "Inactive";
 }
+
+/* ---------------- MOCK DATA ---------------- */
 
 const initialBranches: Branch[] = [
   {
     id: "1",
-    name: "Hyderabad",
-    code: "HYD",
-    city: "Hyderabad",
+    branchName: "Hyderabad",
+    branchCode: "HYD",
     state: "Telangana",
-    gst: "36ABCDE1234F1Z5",
+    city: "Hyderabad",
+    address: "Madhapur, Hyderabad, Telangana",
+    contactPerson: "Ravi Kumar",
+    contactNumber: "+91 9876543210",
+    email: "hyd@ssspl.com",
+    operationalSince: "2015",
+    branchType: "Head",
+    capacity: "250",
+    gstNumber: "36ABCDE1234F1Z5",
     status: "Active",
   },
 ];
+
+/* ---------------- COMPONENT ---------------- */
 
 const BranchMaster = () => {
   const [branches, setBranches] = useState<Branch[]>(initialBranches);
@@ -70,11 +90,18 @@ const BranchMaster = () => {
         ...prev,
         {
           id: Date.now().toString(),
-          name: "",
-          code: "",
-          city: "",
+          branchName: "",
+          branchCode: "",
           state: "",
-          gst: "",
+          city: "",
+          address: "",
+          contactPerson: "",
+          contactNumber: "",
+          email: "",
+          operationalSince: "",
+          branchType: "",
+          capacity: "",
+          gstNumber: "",
           status: "Active",
         },
       ]);
@@ -97,8 +124,10 @@ const BranchMaster = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Branch Master</CardTitle>
-          <CardDescription>Manage company branches</CardDescription>
+          <CardTitle>Branch / Location Master</CardTitle>
+          <CardDescription>
+            Manage company branches and operational locations
+          </CardDescription>
         </div>
         <Button onClick={() => setOpen(true)} className="bg-accent">
           <Plus className="h-4 w-4 mr-2" />
@@ -113,21 +142,26 @@ const BranchMaster = () => {
               <TableRow className="bg-muted/50">
                 <TableHead>Branch Name</TableHead>
                 <TableHead>Code</TableHead>
-                <TableHead>City</TableHead>
                 <TableHead>State</TableHead>
+                <TableHead>City</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>GST</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {branches.map((b) => (
                 <TableRow key={b.id}>
-                  <TableCell className="font-medium">{b.name}</TableCell>
-                  <TableCell>{b.code}</TableCell>
-                  <TableCell>{b.city}</TableCell>
+                  <TableCell className="font-medium">
+                    {b.branchName}
+                  </TableCell>
+                  <TableCell>{b.branchCode}</TableCell>
                   <TableCell>{b.state}</TableCell>
-                  <TableCell>{b.gst}</TableCell>
+                  <TableCell>{b.city}</TableCell>
+                  <TableCell>{b.branchType}</TableCell>
+                  <TableCell>{b.gstNumber}</TableCell>
                   <TableCell>
                     <Badge
                       className={
@@ -165,66 +199,173 @@ const BranchMaster = () => {
         </div>
       </CardContent>
 
-      {/* Add / Edit Dialog */}
+      {/* ADD / EDIT DIALOG */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>
               {editing ? "Edit Branch" : "Add Branch"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
+          <div className="grid grid-cols-2 gap-4 mt-4">
             <div>
-              <Label>Branch Name</Label>
+              <Label>Branch Name *</Label>
               <Input
-                value={editing?.name || ""}
+                value={editing?.branchName || ""}
                 onChange={(e) =>
-                  setEditing((prev) =>
-                    prev ? { ...prev, name: e.target.value } : prev
+                  setEditing((p) =>
+                    p ? { ...p, branchName: e.target.value } : p
                   )
                 }
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Branch Code</Label>
-                <Input />
-              </div>
-              <div>
-                <Label>GST Number</Label>
-                <Input />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>City</Label>
-                <Input />
-              </div>
-              <div>
-                <Label>State</Label>
-                <Input />
-              </div>
+            <div>
+              <Label>Branch Code *</Label>
+              <Input
+                value={editing?.branchCode || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, branchCode: e.target.value } : p
+                  )
+                }
+              />
             </div>
 
             <div>
-              <Label>Status</Label>
-              <Select defaultValue="Active">
+              <Label>State *</Label>
+              <Input
+                value={editing?.state || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, state: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>City *</Label>
+              <Input
+                value={editing?.city || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, city: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label>Full Address *</Label>
+              <Input
+                value={editing?.address || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, address: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Contact Person *</Label>
+              <Input
+                value={editing?.contactPerson || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, contactPerson: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Contact Number *</Label>
+              <Input
+                value={editing?.contactNumber || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, contactNumber: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Email ID *</Label>
+              <Input
+                value={editing?.email || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, email: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Operational Since</Label>
+              <Input
+                value={editing?.operationalSince || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, operationalSince: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>Branch Type *</Label>
+              <Select
+                value={editing?.branchType || ""}
+                onValueChange={(v) =>
+                  setEditing((p) => (p ? { ...p, branchType: v } : p))
+                }
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select branch type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Head">Head</SelectItem>
+                  <SelectItem value="Regional">Regional</SelectItem>
+                  <SelectItem value="Satellite">Satellite</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label>Employee Capacity</Label>
+              <Input
+                value={editing?.capacity || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, capacity: e.target.value } : p
+                  )
+                }
+              />
+            </div>
+
+            <div>
+              <Label>GST Number *</Label>
+              <Input
+                value={editing?.gstNumber || ""}
+                onChange={(e) =>
+                  setEditing((p) =>
+                    p ? { ...p, gstNumber: e.target.value } : p
+                  )
+                }
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+            <Button variant="outline" onClick={() =>{
+              setEditing(null);
+              setOpen(false)
+            } }>
               Cancel
             </Button>
             <Button onClick={handleSave} className="bg-accent">

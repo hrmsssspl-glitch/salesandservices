@@ -44,6 +44,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Employee } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { Textarea } from '@/components/ui/textarea';
 
 // Mock data - In production, this comes from PHP API via employeeAPI.getAll()
 const mockEmployees: Employee[] = [
@@ -206,6 +208,7 @@ const Employees: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Filter employees
   const filteredEmployees = employees.filter((emp) => {
@@ -248,10 +251,12 @@ const Employees: React.FC = () => {
           <h1 className="text-2xl font-bold">Employees</h1>
           <p className="text-muted-foreground">Manage your organization's workforce</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-accent hover:bg-accent/90">
+        {user?.role === 'HR' && 
+        (<Button disabled={user?.role !== 'HR'} onClick={() => setIsAddDialogOpen(true)} className="bg-accent hover:bg-accent/90">
           <Plus className="h-4 w-4 mr-2" />
           Add Employee
-        </Button>
+        </Button>)
+        }
       </div>
 
       {/* Filters & Search */}
@@ -347,7 +352,10 @@ const Employees: React.FC = () => {
                         <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      {
+                        user?.role === 'HR' && (
+                          <>
+                          <DropdownMenuItem>
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
@@ -355,6 +363,9 @@ const Employees: React.FC = () => {
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
+                          </>
+                        )
+                      }
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -441,13 +452,17 @@ const Employees: React.FC = () => {
               <Tabs defaultValue="personal" className="mt-4">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="personal">Personal</TabsTrigger>
-                  <TabsTrigger value="employment">Employment</TabsTrigger>
-                  <TabsTrigger value="identity">Identity</TabsTrigger>
-                  <TabsTrigger value="statutory">Statutory</TabsTrigger>
+                  <TabsTrigger value="address">Adress & Contact Details</TabsTrigger>
+                  <TabsTrigger value="identity">Identity & KYC</TabsTrigger>
+                  <TabsTrigger value="employment">Employment Details</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="personal" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Employee ID</Label>
+                      <p className="font-medium">{selectedEmployee.employeeId}</p>
+                    </div>
                     <div>
                       <Label className="text-muted-foreground text-xs">Full Name</Label>
                       <p className="font-medium">{selectedEmployee.fullName}</p>
@@ -471,24 +486,78 @@ const Employees: React.FC = () => {
                       <p className="font-medium">{selectedEmployee.maritalStatus}</p>
                     </div>
                     <div>
-                      <Label className="text-muted-foreground text-xs">Phone</Label>
-                      <p className="font-medium">{selectedEmployee.phone}</p>
+                      <Label className="text-muted-foreground text-xs">Nationality</Label>
+                      <p className="font-medium">{selectedEmployee.nationality}</p>
                     </div>
+                    {/* 
+                    
+                    
                     <div className="col-span-2">
-                      <Label className="text-muted-foreground text-xs">Email</Label>
-                      <p className="font-medium">{selectedEmployee.email}</p>
-                    </div>
+                      <Label className="text-muted-foreground text-xs">Emergency Contact</Label>
+                      <p className="font-medium">{selectedEmployee.emergencyContact}</p>
+                    </div> */}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="address" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-2">
                       <Label className="text-muted-foreground text-xs">Present Address</Label>
                       <p className="font-medium">{selectedEmployee.presentAddress}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Phone</Label>
+                      <p className="font-medium">{selectedEmployee.phone}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Emergency Contact Name</Label>
+                      <p className="font-medium">{selectedEmployee.emergencycontactname}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Emergency Contact Relation</Label>
+                      <p className="font-medium">{selectedEmployee.emergencycontactrelation}</p>
+                    </div>
+                     <div>
+                      <Label className="text-muted-foreground text-xs">Emergency Contact Number</Label>
+                      <p className="font-medium">{selectedEmployee.emergencycontactnumber}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Personal Email ID</Label>
+                      <p className="font-medium">{selectedEmployee.email}</p>
                     </div>
                     <div className="col-span-2">
                       <Label className="text-muted-foreground text-xs">Permanent Address</Label>
                       <p className="font-medium">{selectedEmployee.permanentAddress}</p>
                     </div>
-                    <div className="col-span-2">
-                      <Label className="text-muted-foreground text-xs">Emergency Contact</Label>
-                      <p className="font-medium">{selectedEmployee.emergencyContact}</p>
+                  </div>
+                </TabsContent>
+
+
+                 <TabsContent value="identity" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Aadhaar Number</Label>
+                      <p className="font-medium">{selectedEmployee.aadhaarNumber}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">PAN Number</Label>
+                      <p className="font-medium">{selectedEmployee.panNumber}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Passport Number</Label>
+                      <p className="font-medium">{selectedEmployee.passport}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Driving License Number</Label>
+                      <p className="font-medium">{selectedEmployee.dlNumber}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">PF Number</Label>
+                      <p className="font-medium">{selectedEmployee.pfnumber}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">ESIC Number</Label>
+                      <p className="font-medium">{selectedEmployee.esic}</p>
                     </div>
                   </div>
                 </TabsContent>
@@ -496,14 +565,14 @@ const Employees: React.FC = () => {
                 <TabsContent value="employment" className="space-y-4 mt-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-muted-foreground text-xs">Employee ID</Label>
-                      <p className="font-medium">{selectedEmployee.employeeId}</p>
-                    </div>
-                    <div>
                       <Label className="text-muted-foreground text-xs">Date of Joining</Label>
                       <p className="font-medium">
                         {new Date(selectedEmployee.dateOfJoining).toLocaleDateString('en-IN')}
                       </p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Employment Type</Label>
+                      <p className="font-medium">{selectedEmployee.employmentType}</p>
                     </div>
                     <div>
                       <Label className="text-muted-foreground text-xs">Department</Label>
@@ -517,10 +586,7 @@ const Employees: React.FC = () => {
                       <Label className="text-muted-foreground text-xs">Grade</Label>
                       <p className="font-medium">{selectedEmployee.grade}</p>
                     </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Employment Type</Label>
-                      <p className="font-medium">{selectedEmployee.employmentType}</p>
-                    </div>
+                    
                     <div>
                       <Label className="text-muted-foreground text-xs">Reporting Manager</Label>
                       <p className="font-medium">{selectedEmployee.reportingManager}</p>
@@ -534,37 +600,20 @@ const Employees: React.FC = () => {
                       <p className="font-medium">{selectedEmployee.shiftType}</p>
                     </div>
                     <div>
+                      <Label className="text-muted-foreground text-xs">Service Agreement From</Label>
+                      <p className="font-medium">{selectedEmployee.serviceAgreementFrom}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground text-xs">Service Agreement To</Label>
+                      <p className="font-medium">{selectedEmployee.serviceAgreementTo}</p>
+                    </div>
+                    <div>
                       <Label className="text-muted-foreground text-xs">Status</Label>
                       <div className="mt-1">{getStatusBadge(selectedEmployee.status)}</div>
                     </div>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="identity" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground text-xs">Aadhaar Number</Label>
-                      <p className="font-medium">{selectedEmployee.aadhaarNumber}</p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">PAN Number</Label>
-                      <p className="font-medium">{selectedEmployee.panNumber}</p>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="statutory" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-muted-foreground text-xs">UAN Number</Label>
-                      <p className="font-medium">{selectedEmployee.uanNumber}</p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground text-xs">ESIC Number</Label>
-                      <p className="font-medium">{selectedEmployee.esicNumber}</p>
-                    </div>
-                  </div>
-                </TabsContent>
               </Tabs>
             </>
           )}
@@ -585,24 +634,41 @@ const Employees: React.FC = () => {
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="personal">Personal</TabsTrigger>
               <TabsTrigger value="address">Address</TabsTrigger>
-              <TabsTrigger value="employment">Employment</TabsTrigger>
               <TabsTrigger value="identity">Identity & KYC</TabsTrigger>
+              <TabsTrigger value="employment">Employment</TabsTrigger>
             </TabsList>
 
             <TabsContent value="personal" className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="employeeid">Employee ID *</Label>
+                  <Input disabled={true} id="employeeid" placeholder="AUTO GENERATED" />
+                </div>
+                <div>
+                  <Label htmlFor="employeetag">Title *</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Mr." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Mr.">Mr.</SelectItem>
+                      <SelectItem value="Mrs.">Mrs.</SelectItem>
+                      <SelectItem value="Ms.">Ms.</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div>
                   <Label htmlFor="fullName">Full Name *</Label>
                   <Input id="fullName" placeholder="Enter full name" />
                 </div>
-                <div>
+                {/* <div>
                   <Label htmlFor="email">Email *</Label>
                   <Input id="email" type="email" placeholder="name@ssspl.com" />
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <Label htmlFor="phone">Phone *</Label>
                   <Input id="phone" placeholder="+91 XXXXX XXXXX" />
-                </div>
+                </div> */}
                 <div>
                   <Label htmlFor="gender">Gender *</Label>
                   <Select>
@@ -644,33 +710,120 @@ const Employees: React.FC = () => {
                     <SelectContent>
                       <SelectItem value="single">Single</SelectItem>
                       <SelectItem value="married">Married</SelectItem>
-                      <SelectItem value="divorced">Divorced</SelectItem>
-                      <SelectItem value="widowed">Widowed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
+                  <Label htmlFor="nationality">Nationality</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select nationality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="indian">Indian</SelectItem>
+                      <SelectItem value="foreign">Foreign</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* <div>
                   <Label htmlFor="emergencyContact">Emergency Contact</Label>
                   <Input id="emergencyContact" placeholder="+91 XXXXX XXXXX" />
-                </div>
+                </div> */}
               </div>
             </TabsContent>
 
             <TabsContent value="address" className="space-y-4 mt-4">
-              <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="presentAddress">Present Address *</Label>
-                  <Input id="presentAddress" placeholder="Enter present address" />
+                  <Textarea id="presentAddress" placeholder="Enter present address" />
+                </div>
+                <div>
+                  <Label htmlFor="mobileNumber">Mobile Number *</Label>
+                  <Input id="mobileNumber" placeholder="+91 XXXXX XXXXX" />
+                </div>
+                <div>
+                  <Label htmlFor="emergencycontactname">Emergency Contact Name *</Label>
+                  <Input id="emergencycontactname" placeholder="Enter emergency contact name" />
+                </div>
+                <div>
+                  <Label htmlFor="emergencycontactrelation">Emergency Contact Relation *</Label>
+                    <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select relation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="parent">Parent</SelectItem>
+                          <SelectItem value="spouse">Spouse</SelectItem>
+                          <SelectItem value="children">Children</SelectItem>
+                          <SelectItem value="in-laws">In-Laws</SelectItem>
+                        </SelectContent>
+                      </Select>                
+                  </div>
+                <div>
+                  <Label htmlFor="emergencycontactnumber">Emergency Contact Number *</Label>
+                  <Input id="emergencycontactnumber" placeholder="+91 XXXXX XXXXX" />
                 </div>
                 <div>
                   <Label htmlFor="permanentAddress">Permanent Address</Label>
-                  <Input id="permanentAddress" placeholder="Enter permanent address" />
+                  <Textarea id="permanentAddress" placeholder="Enter permanent address" />
                 </div>
               </div>
             </TabsContent>
 
+
+            <TabsContent value="identity" className="space-y-4 mt-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="aadhaar">Aadhaar Number *</Label>
+                  <Input id="aadhaar" placeholder="XXXX XXXX XXXX" />
+                </div>
+                <div>
+                  <Label htmlFor="pan">PAN Number *</Label>
+                  <Input id="pan" placeholder="ABCDE1234F" />
+                </div>
+                <div>
+                  <Label htmlFor="passport">Passport Number *</Label>
+                  <Input id="passport" placeholder="" />
+                </div>
+                <div>
+                  <Label htmlFor="passport-valid-from">Passport Valid From *</Label>
+                  <Input id="passport-valid-from" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="passport-valid-to">Passport Valid To *</Label>
+                  <Input id="passport-valid-to" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="dl-no">Driving License Number *</Label>
+                  <Input id="dlnumber" placeholder="Enter DL Number" />
+                </div>
+                <div>
+                  <Label htmlFor="dl-valid-from">Driving License Valid From *</Label>
+                  <Input id="dl-valid-from" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="dl-valid-to">Driving License Valid To *</Label>
+                  <Input id="dl-valid-to" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="uan">UAN Number</Label>
+                  <Input id="uan" placeholder="100XXXXXXXXX" />
+                </div>
+                <div>
+                  <Label htmlFor="pf-number">PF Number</Label>
+                  <Input id="pfnumber" placeholder="" />
+                </div>
+                <div>
+                  <Label htmlFor="esic">ESIC Number</Label>
+                  <Input id="esic" placeholder="ESIXXXXXXXX" />
+                </div>
+              </div>
+            </TabsContent>
+
+
             <TabsContent value="employment" className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="dateOfJoining">Date of Joining *</Label>
                   <Input id="dateOfJoining" type="date" />
@@ -685,8 +838,8 @@ const Employees: React.FC = () => {
                       <SelectItem value="permanent">Permanent</SelectItem>
                       <SelectItem value="contract">Contract</SelectItem>
                       <SelectItem value="consultant">Consultant</SelectItem>
-                      <SelectItem value="fixed">Fixed Term</SelectItem>
-                      <SelectItem value="project">Project Based</SelectItem>
+                      <SelectItem value="project">Project</SelectItem>
+                      <SelectItem value="govt">Govt</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -734,29 +887,37 @@ const Employees: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="trainingfrom">Training From *</Label>
+                  <Input id="trainingfrom" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="trainingto">Training To *</Label>
+                  <Input id="trainingto" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="probationfrom">Probation From *</Label>
+                  <Input id="probationfrom" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="probationto">Probation To *</Label>
+                  <Input id="probationto" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="confirmationdate">Confirmation Date *</Label>
+                  <Input id="confirmationdate" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="serviceagreementfrom">Service Agreement From *</Label>
+                  <Input id="serviceagreementfrom" type="date" />
+                </div>
+                <div>
+                  <Label htmlFor="serviceagreementto">Service Agreement To *</Label>
+                  <Input id="serviceagreementto" type="date" />
+                </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="identity" className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="aadhaar">Aadhaar Number *</Label>
-                  <Input id="aadhaar" placeholder="XXXX XXXX XXXX" />
-                </div>
-                <div>
-                  <Label htmlFor="pan">PAN Number *</Label>
-                  <Input id="pan" placeholder="ABCDE1234F" />
-                </div>
-                <div>
-                  <Label htmlFor="uan">UAN Number</Label>
-                  <Input id="uan" placeholder="100XXXXXXXXX" />
-                </div>
-                <div>
-                  <Label htmlFor="esic">ESIC Number</Label>
-                  <Input id="esic" placeholder="ESIXXXXXXXX" />
-                </div>
-              </div>
-            </TabsContent>
           </Tabs>
 
           <div className="flex justify-end gap-2 mt-6 pt-4 border-t">

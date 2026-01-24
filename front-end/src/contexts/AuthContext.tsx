@@ -288,6 +288,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Store JWT
     localStorage.setItem('token', access_token);
 
+    // const normalizeRole = (role: string) => role.toLowerCase();
+
+
     // Normalize user (temporary defaults for UI)
     const normalizedUser: User = {
       id: user.id,

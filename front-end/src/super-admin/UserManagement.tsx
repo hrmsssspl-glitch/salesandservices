@@ -4,10 +4,7 @@ import {
   Plus,
   MoreVertical,
   Eye,
-  Edit,
   Power,
-  Mail,
-  Phone,
   Building2,
   UserCog,
 } from "lucide-react";
@@ -42,10 +39,10 @@ import { useToast } from "@/hooks/use-toast";
 
 /* ---------------- TYPES ---------------- */
 
-type Role = "admin" | "hr" | "manager" | "employee";
+type Role = "admin" | "hr" | "manager";
 type Status = "active" | "inactive";
 
-interface Person {
+interface UserRecord {
   id: string;
   fullName: string;
   email: string;
@@ -53,7 +50,6 @@ interface Person {
   role: Role;
   branch: string;
   department?: string;
-  designation?: string;
   status: Status;
 }
 
@@ -62,8 +58,7 @@ interface Person {
 const branches = ["Hyderabad", "Bangalore", "Chennai", "Mumbai"];
 const departments = ["Engineering", "Sales", "HR", "Operations", "Finance"];
 
-const mockPeople: Person[] = [
-  // ADMINS
+const mockUsers: UserRecord[] = [
   {
     id: "A001",
     fullName: "Hyderabad Admin",
@@ -74,28 +69,14 @@ const mockPeople: Person[] = [
     status: "active",
   },
   {
-    id: "A002",
-    fullName: "Bangalore Admin",
-    email: "admin.blr@company.com",
-    phone: "+91 98888 22222",
-    role: "admin",
-    branch: "Bangalore",
-    status: "active",
-  },
-
-  // HR
-  {
     id: "H001",
     fullName: "Priya Sharma",
     email: "hr.hyd@company.com",
     phone: "+91 97777 33333",
     role: "hr",
     branch: "Hyderabad",
-    department: "HR",
     status: "active",
   },
-
-  // MANAGERS
   {
     id: "M001",
     fullName: "Ravi Kumar",
@@ -106,30 +87,6 @@ const mockPeople: Person[] = [
     department: "Engineering",
     status: "inactive",
   },
-
-  // EMPLOYEES
-  {
-    id: "E001",
-    fullName: "Sneha Reddy",
-    email: "sneha@company.com",
-    phone: "+91 95555 55555",
-    role: "employee",
-    branch: "Hyderabad",
-    department: "Engineering",
-    designation: "Software Engineer",
-    status: "active",
-  },
-  {
-    id: "E002",
-    fullName: "Amit Patel",
-    email: "amit@company.com",
-    phone: "+91 94444 66666",
-    role: "employee",
-    branch: "Hyderabad",
-    department: "Sales",
-    designation: "Sales Executive",
-    status: "active",
-  },
 ];
 
 /* ---------------- COMPONENT ---------------- */
@@ -138,69 +95,65 @@ const UserManagement: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const isSuperAdmin = user?.role === "SUPERADMIN";
-  const isAdmin = user?.role === "ADMIN";
+  // normalize backend role (SUPERADMIN / ADMIN / HR)
+  const currentRole = user?.role?.toLowerCase();
+
+  const isSuperAdmin = currentRole === "superadmin";
+  const isAdmin = currentRole === "admin";
+
+  // HR & Manager should never see this page
+  if (!isSuperAdmin && !isAdmin) return null;
 
   const [activeTab, setActiveTab] = useState<Role>("admin");
   const [search, setSearch] = useState("");
-  const [people, setPeople] = useState<Person[]>(mockPeople);
-  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [records, setRecords] = useState<UserRecord[]>(mockUsers);
+  const [editing, setEditing] = useState<UserRecord | null>(null);
+  const [open, setOpen] = useState(false);
 
   /* ---------------- TAB VISIBILITY ---------------- */
 
   const allowedTabs: Role[] = isSuperAdmin
-    ? ["admin", "hr", "manager", "employee"]
-    : ["hr", "manager", "employee"];
+    ? ["admin", "hr", "manager"]
+    : ["hr", "manager"];
 
-  /* ---------------- FILTER DATA ---------------- */
+  /* ---------------- FILTERING ---------------- */
 
-  const filteredPeople = people.filter((p) => {
-    if (!allowedTabs.includes(p.role)) return false;
-    if (isAdmin && p.branch !== user?.branch) return false;
-    if (isAdmin && p.role === "admin") return false;
+  const filtered = records.filter((r) => {
+    if (!allowedTabs.includes(r.role)) return false;
+    if (isAdmin && r.branch !== user?.branch) return false;
+    if (isAdmin && r.role === "admin") return false;
 
     return (
-      p.role === activeTab &&
-      (p.fullName.toLowerCase().includes(search.toLowerCase()) ||
-        p.email.toLowerCase().includes(search.toLowerCase()))
+      r.role === activeTab &&
+      (r.fullName.toLowerCase().includes(search.toLowerCase()) ||
+        r.email.toLowerCase().includes(search.toLowerCase()))
     );
   });
 
   /* ---------------- PERMISSIONS ---------------- */
 
   const canAdd =
-    (isSuperAdmin && activeTab === "admin") ||
+    (isSuperAdmin && (activeTab === "admin" || activeTab === "hr")) ||
     (isAdmin && (activeTab === "hr" || activeTab === "manager"));
-
-  const canEditEmployee =
-    activeTab === "employee" && isAdmin; // limited edit
 
   /* ---------------- ACTIONS ---------------- */
 
   const toggleStatus = (id: string) => {
-    setPeople((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? { ...p, status: p.status === "active" ? "inactive" : "active" }
-          : p
+    setRecords((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? { ...r, status: r.status === "active" ? "inactive" : "active" }
+          : r
       )
     );
-    toast({
-      title: "Status updated",
-      description: "Status changed successfully.",
-    });
+    toast({ title: "Status updated" });
   };
 
   const handleSave = () => {
-    toast({
-      title: "Saved",
-      description: "Details saved successfully.",
-    });
-    setIsDialogOpen(false);
-    setSelectedPerson(null);
+    toast({ title: "User saved successfully" });
+    setOpen(false);
+    setEditing(null);
   };
-
 
   /* ---------------- UI ---------------- */
 
@@ -209,9 +162,9 @@ const UserManagement: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">People Management</h1>
+          <h1 className="text-2xl font-bold">User Management</h1>
           <p className="text-muted-foreground">
-            Manage admins, HR, managers, and employees
+            Create and manage Admin, HR Head and Managers
           </p>
         </div>
 
@@ -219,12 +172,12 @@ const UserManagement: React.FC = () => {
           <Button
             className="bg-accent"
             onClick={() => {
-              setSelectedPerson(null);
-              setIsDialogOpen(true);
+              setEditing(null);
+              setOpen(true);
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+            Add {activeTab.toUpperCase()}
           </Button>
         )}
       </div>
@@ -232,9 +185,9 @@ const UserManagement: React.FC = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Role)}>
         <TabsList>
-          {allowedTabs.map((tab) => (
-            <TabsTrigger key={tab} value={tab}>
-              {tab.toUpperCase()}S
+          {allowedTabs.map((t) => (
+            <TabsTrigger key={t} value={t}>
+              {t.toUpperCase()}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -246,7 +199,7 @@ const UserManagement: React.FC = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by name or email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -257,13 +210,13 @@ const UserManagement: React.FC = () => {
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredPeople.map((p) => (
-          <Card key={p.id} className="card-hover">
+        {filtered.map((r) => (
+          <Card key={r.id} className="card-hover">
             <CardContent className="p-4">
               <div className="flex justify-between">
                 <div>
-                  <p className="font-semibold">{p.fullName}</p>
-                  <p className="text-sm text-muted-foreground">{p.email}</p>
+                  <p className="font-semibold">{r.fullName}</p>
+                  <p className="text-sm text-muted-foreground">{r.email}</p>
                 </div>
 
                 <DropdownMenu>
@@ -273,24 +226,21 @@ const UserManagement: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setSelectedPerson(p)}>
+                    <DropdownMenuItem onClick={() => setEditing(r)}>
                       <Eye className="h-4 w-4 mr-2" />
                       View / Edit
                     </DropdownMenuItem>
-
-                    {p.role !== "employee" && (
-                      <DropdownMenuItem
-                        onClick={() => toggleStatus(p.id)}
-                        className={
-                          p.status === "active"
-                            ? "text-destructive"
-                            : "text-success"
-                        }
-                      >
-                        <Power className="h-4 w-4 mr-2" />
-                        {p.status === "active" ? "Disable" : "Enable"}
-                      </DropdownMenuItem>
-                    )}
+                    <DropdownMenuItem
+                      onClick={() => toggleStatus(r.id)}
+                      className={
+                        r.status === "active"
+                          ? "text-destructive"
+                          : "text-success"
+                      }
+                    >
+                      <Power className="h-4 w-4 mr-2" />
+                      {r.status === "active" ? "Disable" : "Enable"}
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -298,22 +248,21 @@ const UserManagement: React.FC = () => {
               <div className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <UserCog className="h-4 w-4" />
-                  {p.role.toUpperCase()}
+                  {r.role.toUpperCase()}
                 </div>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  {p.branch}
+                  {r.branch}
                 </div>
-                {p.department && <div>{p.department}</div>}
-                {p.designation && <div>{p.designation}</div>}
+                {r.department && <div>{r.department}</div>}
                 <Badge
                   className={
-                    p.status === "active"
+                    r.status === "active"
                       ? "badge-success"
                       : "badge-destructive"
                   }
                 >
-                  {p.status}
+                  {r.status}
                 </Badge>
               </div>
             </CardContent>
@@ -323,41 +272,38 @@ const UserManagement: React.FC = () => {
 
       {/* Add / Edit Dialog */}
       <Dialog
-        open={isDialogOpen || !!selectedPerson}
-        onOpenChange={() => {
-          setIsDialogOpen(false);
-          setSelectedPerson(null);
+        open={open || !!editing}
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) setEditing(null);
         }}
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {selectedPerson ? "Edit" : "Add"}{" "}
-              {activeTab.toUpperCase()}
+              {editing ? "Edit" : "Add"} {activeTab.toUpperCase()}
             </DialogTitle>
-            <DialogDescription>
-              Enter details below
-            </DialogDescription>
+            <DialogDescription>User details</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
             <div>
-              <Label>Full Name *</Label>
-              <Input defaultValue={selectedPerson?.fullName} />
+              <Label>Full Name</Label>
+              <Input defaultValue={editing?.fullName} />
             </div>
             <div>
-              <Label>Email *</Label>
-              <Input defaultValue={selectedPerson?.email} />
+              <Label>Email</Label>
+              <Input defaultValue={editing?.email} />
             </div>
             <div>
-              <Label>Phone *</Label>
-              <Input defaultValue={selectedPerson?.phone} />
+              <Label>Phone</Label>
+              <Input defaultValue={editing?.phone} />
             </div>
 
-            {activeTab !== "admin" && (
+            {activeTab === "manager" && (
               <div>
                 <Label>Department</Label>
-                <Select defaultValue={selectedPerson?.department}>
+                <Select defaultValue={editing?.department}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
@@ -373,11 +319,9 @@ const UserManagement: React.FC = () => {
             )}
 
             <div>
-              <Label>Branch *</Label>
+              <Label>Branch</Label>
               <Select
-                defaultValue={
-                  isAdmin ? user?.branch : selectedPerson?.branch
-                }
+                defaultValue={isAdmin ? user?.branch : editing?.branch}
                 disabled={isAdmin}
               >
                 <SelectTrigger>
@@ -395,12 +339,15 @@ const UserManagement: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-            <Button variant="outline"
-            onClick={() => {
-              setIsDialogOpen(false);
-              setSelectedPerson(null);
-            }}
-            >Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOpen(false);
+                setEditing(null);
+              }}
+            >
+              Cancel
+            </Button>
             <Button className="bg-accent" onClick={handleSave}>
               Save
             </Button>

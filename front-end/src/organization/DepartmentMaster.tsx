@@ -33,14 +33,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+/* ---------------- TYPES ---------------- */
+
 interface Department {
   id: string;
   name: string;
   code: string;
   branch: string;
-  hod: string;
+  hodName: string;
+  hodEmployeeId: string;
+  reportingHierarchy: string;
+  location: string;
+  email?: string;
+  phone?: string;
   status: "Active" | "Inactive";
 }
+
+/* ---------------- MOCK DATA ---------------- */
 
 const branches = ["Hyderabad", "Bangalore", "Vizag"];
 
@@ -50,33 +59,33 @@ const initialDepartments: Department[] = [
     name: "Service",
     code: "SERV",
     branch: "Hyderabad",
-    hod: "Not Assigned",
+    hodName: "Ramesh Kumar",
+    hodEmployeeId: "EMP102",
+    reportingHierarchy: "Operations Head",
+    location: "Hyderabad",
+    email: "service@company.com",
+    phone: "+91 9876543210",
     status: "Active",
   },
 ];
 
+/* ---------------- COMPONENT ---------------- */
+
 const DepartmentMaster = () => {
-  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
+  const [departments, setDepartments] =
+    useState<Department[]>(initialDepartments);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Department | null>(null);
+
+  /* ---------------- ACTIONS ---------------- */
 
   const handleSave = () => {
     if (editing) {
       setDepartments((prev) =>
-        prev.map((d) => (d.id === editing.id ? editing : d))
+        prev.some((d) => d.id === editing.id)
+          ? prev.map((d) => (d.id === editing.id ? editing : d))
+          : [...prev, { ...editing, id: Date.now().toString() }]
       );
-    } else {
-      setDepartments((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          name: "",
-          code: "",
-          branch: "",
-          hod: "Not Assigned",
-          status: "Active",
-        },
-      ]);
     }
     setOpen(false);
     setEditing(null);
@@ -92,14 +101,36 @@ const DepartmentMaster = () => {
     );
   };
 
+  /* ---------------- UI ---------------- */
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Department Master</CardTitle>
-          <CardDescription>Manage departments under branches</CardDescription>
+          <CardDescription>
+            Manage departments and reporting structure
+          </CardDescription>
         </div>
-        <Button onClick={() => setOpen(true)} className="bg-accent">
+        <Button
+          onClick={() => {
+            setEditing({
+              id: "",
+              name: "",
+              code: "",
+              branch: "",
+              hodName: "",
+              hodEmployeeId: "",
+              reportingHierarchy: "",
+              location: "",
+              email: "",
+              phone: "",
+              status: "Active",
+            });
+            setOpen(true);
+          }}
+          className="bg-accent"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add Department
         </Button>
@@ -110,7 +141,7 @@ const DepartmentMaster = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>Department Name</TableHead>
+                <TableHead>Department</TableHead>
                 <TableHead>Code</TableHead>
                 <TableHead>Branch</TableHead>
                 <TableHead>HOD</TableHead>
@@ -124,7 +155,7 @@ const DepartmentMaster = () => {
                   <TableCell className="font-medium">{d.name}</TableCell>
                   <TableCell>{d.code}</TableCell>
                   <TableCell>{d.branch}</TableCell>
-                  <TableCell>{d.hod}</TableCell>
+                  <TableCell>{d.hodName}</TableCell>
                   <TableCell>
                     <Badge
                       className={
@@ -162,63 +193,157 @@ const DepartmentMaster = () => {
         </div>
       </CardContent>
 
-      {/* Add / Edit Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+      {/* ---------------- ADD / EDIT DIALOG ---------------- */}
+
+      <Dialog
+        open={open}
+        onOpenChange={(value) => {
+          setOpen(value);
+          if (!value) setEditing(null); // ✅ FIX: reset form on close
+        }}
+      >
+        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit Department" : "Add Department"}
+              {editing?.id ? "Edit Department" : "Add Department"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
-            <div>
-              <Label>Department Name</Label>
-              <Input
-                value={editing?.name || ""}
-                onChange={(e) =>
-                  setEditing((prev) =>
-                    prev ? { ...prev, name: e.target.value } : prev
-                  )
-                }
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+          {editing && (
+            <div className="space-y-4 mt-4">
               <div>
-                <Label>Department Code</Label>
-                <Input />
+                <Label>Department Name *</Label>
+                <Input
+                  value={editing.name}
+                  onChange={(e) =>
+                    setEditing({ ...editing, name: e.target.value })
+                  }
+                />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Department Code *</Label>
+                  <Input
+                    value={editing.code}
+                    onChange={(e) =>
+                      setEditing({ ...editing, code: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Branch *</Label>
+                  <Select
+                    value={editing.branch}
+                    onValueChange={(v) =>
+                      setEditing({ ...editing, branch: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((b) => (
+                        <SelectItem key={b} value={b}>
+                          {b}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>HOD Name</Label>
+                  <Input
+                    value={editing.hodName}
+                    onChange={(e) =>
+                      setEditing({ ...editing, hodName: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>HOD Employee ID</Label>
+                  <Input
+                    value={editing.hodEmployeeId}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        hodEmployeeId: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
               <div>
-                <Label>Branch</Label>
-                <Select defaultValue={editing?.branch || ""}>
+                <Label>Reporting Hierarchy</Label>
+                <Input
+                  placeholder="e.g. Operations Head"
+                  value={editing.reportingHierarchy}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      reportingHierarchy: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Department Location</Label>
+                  <Input
+                    value={editing.location}
+                    onChange={(e) =>
+                      setEditing({ ...editing, location: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Department Email</Label>
+                  <Input
+                    value={editing.email}
+                    onChange={(e) =>
+                      setEditing({ ...editing, email: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Department Phone</Label>
+                <Input
+                  value={editing.phone}
+                  onChange={(e) =>
+                    setEditing({ ...editing, phone: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={editing.status}
+                  onValueChange={(v) =>
+                    setEditing({
+                      ...editing,
+                      status: v as "Active" | "Inactive",
+                    })
+                  }
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Branch" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {branches.map((b) => (
-                      <SelectItem key={b} value={b}>
-                        {b}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
-            <div>
-              <Label>Status</Label>
-              <Select defaultValue="Active">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
 
           <div className="flex justify-end gap-2 mt-6">
             <Button variant="outline" onClick={() => setOpen(false)}>

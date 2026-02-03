@@ -39,16 +39,16 @@ from app.routers import auth, attendance
 app = FastAPI(title="SSSMS HRMS API")
 
 origins = [
-    "http://localhost:5173",
-    "http://localhost:8080",
-    "https://sales-services.vercel.app",
-    "https://www.sales-services.vercel.app",
+    # "http://localhost:5173",
+    # "http://localhost:8080",
+    # "https://sales-services.vercel.app",
+    # "https://www.sales-services.vercel.app",
 ]
 
 # ⚠️ IMPORTANT: Add CORSMiddleware FIRST
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

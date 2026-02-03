@@ -16,6 +16,7 @@ db = SessionLocal()
 users_data = [
     # Admin / HR / Manager
     ("admin@ssspl.com", "admin123", "ADMIN"),
+    ("superadmin@ssspl.com","superadmin123","SUPERADMIN"),
     ("hr@ssspl.com", "hr123", "HR"),
     ("manager@ssspl.com", "manager123", "MANAGER"),
 
